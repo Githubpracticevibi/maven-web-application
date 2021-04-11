@@ -1,0 +1,35 @@
+node
+{
+def homemaven = tool name: "maven new"
+stage('github')
+{
+git branch: 'development', credentialsId: 'c1e7565e-4a8b-445d-9f7f-86b450562f01', url: 'https://github.com/Githubpracticevibi/maven-web-application.git'
+}
+
+stage ('maven')
+{
+sh "${homemaven}/bin/mvn clean package"
+}
+/*stage ('sonarqube')
+{
+sh "${homemaven}/bin/mvn sonar:sonar"
+}
+stage ('nexus')
+{
+sh "${homemaven}/bin/mvn clean deploy"
+}*/
+stage ('TomCatserver')
+{
+sshagent(['39f85a9e-b18b-475d-9c28-cc968dc6a56f']) 
+{
+   sh "scp -o StrictHostKeyChecking=no target/maven-web-application.war ec2-user@15.206.211.235:/opt/apache-tomcat-9.0.44/webapps/"
+}
+}
+stage ('emailnoti')
+{
+emailext body: '''Looking for job change
+
+thanks
+Vibishanan''', subject: 'new gmail scripted', to: 'vibi.cbm1@gmail.com,vibi.cbm@gmail.com'
+}
+}
