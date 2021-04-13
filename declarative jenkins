@@ -1,6 +1,10 @@
 pipeline
 {
-agent Nodes
+agent any
+label
+{
+label "Nodes"
+}
 tools
 {
 maven 'maven new'
