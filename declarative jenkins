@@ -1,0 +1,72 @@
+pipeline
+{
+agent any
+tools
+{
+maven 'maven new'
+}
+triggers
+{
+pollSCM('* * * * *')
+}
+options
+{
+timestamps()
+buildDiscarder(logRotator(artifactDaysToKeepStr: '', artifactNumToKeepStr: '3', daysToKeepStr: '', numToKeepStr: '3'))
+}
+stages{
+stage('github')
+{
+steps{
+git branch: 'development', credentialsId: 'c1e7565e-4a8b-445d-9f7f-86b450562f01', url: 'https://github.com/Githubpracticevibi/maven-web-application.git'
+}
+}
+stage('maven')
+{
+steps{
+sh "mvn clean package"
+}
+}
+stage('sonarqube')
+{
+steps
+{
+sh "mvn sonar:sonar"
+}
+}
+stage('nexus')
+{
+steps
+{
+sh "mvn deploy"
+}
+}
+stage('deployinartifact')
+{
+steps{
+sshagent(['ca986841-d3ec-47aa-9694-80ac60d9b4de']) {
+sh "scp -o StrictHostKeyChecking=no target/maven-web-application.war ec2-user@52.66.238.115:/opt/apache-tomcat-9.0.44/webapps/"
+}
+}
+}
+}
+post
+{
+success{
+emailext body: '''hI
+
+I am your build I am success
+
+regards
+email generator''', subject: 'build succeaa', to: 'vibi.cbm1@gmail.com,vibi.cbm@gmail.com'
+}
+failure{
+emailext body: '''hI
+
+I am your build I am failure
+
+regards
+email generator''', subject: 'build failure', to: 'vibi.cbm1@gmail.com,vibi.cbm@gmail.com'
+}
+}
+}
