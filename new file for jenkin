@@ -1,5 +1,5 @@
 node
-//echo "vibi"
+//echo "vib"
 {
 properties([buildDiscarder(logRotator(artifactDaysToKeepStr: '', artifactNumToKeepStr: '3', daysToKeepStr: '', numToKeepStr: '3')), pipelineTriggers([pollSCM('* * * * *')])])
 def homemaven = tool name: "maven new"
