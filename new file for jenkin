@@ -18,14 +18,14 @@ sh "${homemaven}/bin/mvn sonar:sonar"
 stage ('nexus')
 {
 sh "${homemaven}/bin/mvn clean deploy"
-}*/
+}
 stage ('TomCatserver')
 {
 sshagent(['39f85a9e-b18b-475d-9c28-cc968dc6a56f']) 
 {
    sh "scp -o StrictHostKeyChecking=no target/maven-web-application.war ec2-user@52.66.238.115:/opt/apache-tomcat-9.0.44/webapps/"
 }
-}
+}*/
 stage ('emailnoti')
 {
 emailext body: '''Looking for job change
