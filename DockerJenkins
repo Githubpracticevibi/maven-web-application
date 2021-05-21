@@ -1,0 +1,49 @@
+pipeline
+{
+    agent any
+    tools {
+        maven 'maven'
+    }
+    stages
+    {
+    stage('git')
+    {
+        steps {
+          git branch: 'development', credentialsId: '191cc9fb-0026-4929-ba4e-7bf1cc80a165', url: 'https://github.com/Githubpracticevibi/maven-web-application.git'  
+        }
+    }
+    stage('build')
+    {
+        steps {
+            sh "mvn clean package"
+    }
+    }
+    stage('Dockerbuild')
+    {
+        steps {
+            sh "docker build -t 097257336859.dkr.ecr.ap-south-1.amazonaws.com/maven-web-app:2 ."
+        }
+    }
+    stage('login')
+    {
+        steps {
+            withCredentials([string(credentialsId: 'ECR_PWD', variable: 'ECRkey')]) {
+            sh "docker login -u AWS -p ${ECRkey} 097257336859.dkr.ecr.ap-south-1.amazonaws.com/maven-web-app"
+      }
+            sh "docker push 097257336859.dkr.ecr.ap-south-1.amazonaws.com/maven-web-app:2"
+        }
+    }
+    stage('ssh agent') {
+        steps {
+            sshagent(['ubuntukey']) {
+           sh "ssh -o StrictHostKeyChecking=no ubuntu@172.31.36.127 docker rm -f mavenwebappcontainer | true"
+           withCredentials([string(credentialsId: 'ECR_PWD', variable: 'ECRkey')]) {
+            sh "ssh -o StrictHostKeyChecking=no ubuntu@172.31.36.127 docker login -u AWS -p ${ECRkey} 097257336859.dkr.ecr.ap-south-1.amazonaws.com/maven-web-app"
+        }
+            sh "ssh -o StrictHostKeyChecking=no ubuntu@172.31.36.127 docker run -d -p 8080:8080 --name mavenwebappcontainer 097257336859.dkr.ecr.ap-south-1.amazonaws.com/maven-web-app:2"
+            }
+        }
+    }
+    
+    }
+  }
